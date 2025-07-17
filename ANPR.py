@@ -5,6 +5,7 @@ from PIL import Image, ImageDraw
 import numpy as np
 import easyocr
 import os
+import re
 
 # Load secrets and model info
 API_KEY = st.secrets["ROBOFLOW_API_KEY"]    # Set as Streamlit secret
@@ -23,7 +24,11 @@ if auth_file:
         df = pd.read_excel(auth_file)
     # Try to detect which column holds the plate numbers
     plate_col = df.columns[0]  # assumes first column
-    authorized_plates = set(str(x).strip().upper() for x in df[plate_col].dropna())
+    authorized_plates = set(
+    re.sub(r'[^A-Za-z0-9]', '', str(x)).upper()
+    for x in df[plate_col].dropna()
+)
+
     st.success(f"{len(authorized_plates)} authorized plate(s) loaded.")
 else:
     authorized_plates = set()
@@ -60,7 +65,8 @@ if uploaded_file and authorized_plates:
         plate_np = np.array(plate_crop)
         ocr_out = ocr_reader.readtext(plate_np)
         if ocr_out:
-            plate_text = ocr_out[0][1].strip().upper()
+            raw_plate_text = ocr_out[0][1].strip().upper()
+            plate_text = re.sub(r'[^A-Za-z0-9]', '', raw_plate_text).upper()
             plates.append(plate_text)
             # Authorization check below!
             if plate_text in authorized_plates:
