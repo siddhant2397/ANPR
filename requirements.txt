@@ -1,7 +1,5 @@
 streamlit
-inference
-supervision
-opencv-python
+inference-sdk
 Pillow
-numpy
 easyocr
+numpy
