@@ -1,8 +1,1 @@
-﻿streamlit
-langchain
-faiss-cpu
-PyMuPDF
-pandas
-unstructured
-sentence-transformers
-huggingface-hub
+python-3.10
