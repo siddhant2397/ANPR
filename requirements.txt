@@ -3,3 +3,5 @@ inference-sdk
 Pillow
 easyocr
 numpy
+pandas
+openpyxl
