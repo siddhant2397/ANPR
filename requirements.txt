@@ -1,7 +1,7 @@
 streamlit
-ultralytics
+inference
+supervision
 opencv-python
 Pillow
-easyocr
 numpy
-torch
+easyocr
