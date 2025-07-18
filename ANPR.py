@@ -38,14 +38,23 @@ if uploaded_file is not None:
             st.success("Inference complete!")
             # Print main result as formatted JSON
             # Temporary debug lines
-            st.write("Raw response object:", response)
-            st.write("response.__dict__:", response.__dict__)
-            st.write("Type of response.inference:", type(getattr(response, 'inference', None)))
-            st.write("Value of response.inference:", getattr(response, 'inference', None))
-            if hasattr(response, 'raw_http_response'):
-                st.write("Raw HTTP Response Content:", getattr(response, "raw_http_response").content)
+            # Show entire parsed API result:
+            st.json(response.dict)
 
-            st.json(response.inference)
+# Show just the plate number (robustly):
+            plate_val = (
+                response.dict.get("_raw_http", {})
+                .get("inference", {})
+                .get("result", {})
+                .get("fields", {})
+                .get("license_plate", {})
+                .get("value", None)
+)
+            if plate_val:
+                st.success(f"License Plate Number: {plate_val}")
+            else:
+                st.warning("No license plate detected.")
+
         except Exception as e:
             st.error(f"Inference failed: {e}")
 
