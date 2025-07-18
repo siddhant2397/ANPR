@@ -37,6 +37,14 @@ if uploaded_file is not None:
             response = mindee_client.enqueue_and_get_inference(input_source, params)
             st.success("Inference complete!")
             # Print main result as formatted JSON
+            # Temporary debug lines
+            st.write("Raw response object:", response)
+            st.write("response.__dict__:", response.__dict__)
+            st.write("Type of response.inference:", type(getattr(response, 'inference', None)))
+            st.write("Value of response.inference:", getattr(response, 'inference', None))
+            if hasattr(response, 'raw_http_response'):
+                st.write("Raw HTTP Response Content:", getattr(response, "raw_http_response").content)
+
             st.json(response.inference)
         except Exception as e:
             st.error(f"Inference failed: {e}")
