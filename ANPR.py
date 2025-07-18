@@ -16,10 +16,10 @@ uploaded_file = st.file_uploader(
 )
 
 if uploaded_file is not None:
-    # Save uploaded file to a temp location
-    with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+    file_ext = os.path.splitext(uploaded_file.name)[1]  # Get user's original extension, e.g., ".jpg"
+    with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp_file:
         tmp_file.write(uploaded_file.read())
-        input_path = tmp_file.name
+        input_path = tmp_file.name  # Now has correct extension!
 
     # Initialize Mindee client and parameters
     mindee_client = ClientV2(api_key)
