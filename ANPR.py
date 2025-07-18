@@ -23,6 +23,14 @@ if uploaded_file is not None:
         input_path = tmp_file.name  # Now has correct extension!
 
     st.info(f"Temp file size: {os.path.getsize(input_path)} bytes")
+    if file_ext.lower() in [".jpg", ".jpeg", ".png"]:
+        try:
+            img = Image.open(input_path)
+            st.image(img, caption="Uploaded Image", use_container_width=True)
+        except Exception as e:
+            st.warning(f"Unable to display image preview: {e}")
+    elif file_ext.lower() == ".pdf":
+        st.info("PDF uploaded. Image preview not available, but inference will run.")
 
 
     # Initialize Mindee client and parameters
