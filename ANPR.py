@@ -3,7 +3,8 @@ import pandas as pd
 from inference_sdk import InferenceHTTPClient
 from PIL import Image, ImageDraw
 import numpy as np
-import easyocr
+from paddleocr import PaddleOCR
+import cv2
 import os
 import re
 
@@ -36,7 +37,7 @@ else:
 
 # Usual ANPR pipeline
 CLIENT = InferenceHTTPClient(api_url="https://serverless.roboflow.com", api_key=API_KEY)
-ocr_reader = easyocr.Reader(['en'])
+ocr_reader = PaddleOCR(use_angle_cls=True, lang='en')
 
 uploaded_file = st.file_uploader("Upload a vehicle image", type=["jpg", "jpeg", "png"])
 
@@ -63,11 +64,20 @@ if uploaded_file and authorized_plates:
 
         plate_crop = image.crop((x0, y0, x1, y1))
         plate_np = np.array(plate_crop)
+        if plate_np.shape[2] == 3:
+            plate_bgr = cv2.cvtColor(plate_np, cv2.COLOR_RGB2BGR)
+        else:
+            plate_bgr = plate_np
+
         ocr_out = ocr_reader.readtext(plate_np)
         if ocr_out:
-            raw_plate_text = ocr_out[0][1].strip().upper()
-            plate_text = re.sub(r'[^A-Za-z0-9]', '', raw_plate_text).upper()
-            plates.append(plate_text)
+            if ocr_out and len(ocr_out[0]):
+                raw_plate_text = ocr_out[0][0][1][0]
+                plate_text = re.sub(r'[^A-Za-z0-9]', '', raw_plate_text).upper()
+                plates.append(plate_text)
+            else:
+                plate_text = ""
+            
             # Authorization check below!
             if plate_text in authorized_plates:
                 status = "✅ AUTHORIZED"
