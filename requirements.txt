@@ -1,7 +1,9 @@
 streamlit
 inference-sdk
 Pillow
-easyocr
+paddleocr
+paddlepaddle==2.5.2
+opencv-python-headless
 numpy
 pandas
 openpyxl
