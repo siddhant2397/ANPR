@@ -39,7 +39,8 @@ if uploaded_file is not None:
             # Print main result as formatted JSON
             # Temporary debug lines
             # Show entire parsed API result:
-            st.json(response.dict)
+            st.json(response.to_dict())
+
 
 # Show just the plate number (robustly):
             plate_val = (
