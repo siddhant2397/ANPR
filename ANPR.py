@@ -4,7 +4,7 @@ from PIL import Image
 import tempfile
 import os
 import json
-import pandas
+import pandas as pd
 import re
 
 # You should NOT hard-code API keys in production. Use Streamlit secrets!
