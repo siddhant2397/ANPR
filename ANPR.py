@@ -37,7 +37,7 @@ else:
 
 # Usual ANPR pipeline
 CLIENT = InferenceHTTPClient(api_url="https://serverless.roboflow.com", api_key=API_KEY)
-ocr_reader = PaddleOCR(use_angle_cls=True, lang='en')
+ocr_reader = PaddleOCR(use_textline_orientation=True, lang='en')
 
 uploaded_file = st.file_uploader("Upload a vehicle image", type=["jpg", "jpeg", "png"])
 
