@@ -39,21 +39,17 @@ if uploaded_file is not None:
             # Print main result as formatted JSON
             # Temporary debug lines
             # Show entire parsed API result:
-            st.write(dir(response))
-            st.json(response.raw_http_response.json())
-            # or, if that's not available:
-            st.json(json.loads(response.raw_http_response.content))
 
 
 # Show just the plate number (robustly):
-            data = response.raw_http_response.json()
             plate_val = (
-                data.get("inference", {})
-                    .get("result", {})
-                    .get("fields", {})
-                    .get("license_plate", {})
-                    .get("value", None)
+                response.raw_http.get("inference", {})
+                .get("result", {})
+                .get("fields", {})
+                .get("license_plate", {})
+                .get("value", None)
 )
+
             if plate_val:
                 st.success(f"License Plate Number: {plate_val}")
             else:
