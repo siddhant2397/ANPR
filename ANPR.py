@@ -3,6 +3,7 @@ from mindee import ClientV2, InferenceParameters
 from PIL import Image
 import tempfile
 import os
+import json
 
 # You should NOT hard-code API keys in production. Use Streamlit secrets!
 api_key = st.secrets["MINDEE_API_KEY"]
@@ -39,6 +40,11 @@ if uploaded_file is not None:
             # Print main result as formatted JSON
             # Temporary debug lines
             # Show entire parsed API result:
+            if isinstance(response.raw_http, str):
+                data = json.loads(response.raw_http)
+            else:
+                data = response.raw_http
+
 
 
 # Show just the plate number (robustly):
