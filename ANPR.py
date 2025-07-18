@@ -49,7 +49,7 @@ if uploaded_file is not None:
 
 # Show just the plate number (robustly):
             plate_val = (
-                response.raw_http.get("inference", {})
+                data.raw_http.get("inference", {})
                 .get("result", {})
                 .get("fields", {})
                 .get("license_plate", {})
