@@ -4,19 +4,39 @@ from PIL import Image
 import tempfile
 import os
 import json
+import pandas
+import re
 
 # You should NOT hard-code API keys in production. Use Streamlit secrets!
 api_key = st.secrets["MINDEE_API_KEY"]
 model_id = "7889f4de-4ddb-4fd9-9fa4-270f24a670de"  # Replace as needed
 
-st.title("Mindee Custom Model Inference")
+st.title("Automatic Number Plate Recognition")
+auth_file = st.file_uploader("Upload Excel/CSV of Authorized Plates", type=["xlsx", "xls", "csv"])
+if auth_file is not None:
+    # Read authorized plates from file
+    if auth_file.name.endswith(".csv"):
+        df = pd.read_csv(auth_file)
+    else:
+        df = pd.read_excel(auth_file)
+    plate_col = df.columns[0]  # assumes first column is plate numbers
+    # Uniform: strip, uppercase, remove all non-alphanum
+    authorized_plates = set(
+        re.sub(r'[^A-Za-z0-9]', '', str(x)).upper()
+        for x in df[plate_col].dropna()
+    )
+    st.success(f"{len(authorized_plates)} authorized plate(s) loaded.")
+else:
+    authorized_plates = set()
+    st.info("Please upload your authorized plate Excel/CSV before uploading images.")
+
 
 uploaded_file = st.file_uploader(
     "Upload an image or PDF for inference",
     type=["jpg", "jpeg", "png", "pdf"]
 )
 
-if uploaded_file is not None:
+if uploaded_file is not None and authorized_plates:
     file_ext = os.path.splitext(uploaded_file.name)[1]  # Get user's original extension, e.g., ".jpg"
     with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp_file:
         tmp_file.write(uploaded_file.read())
@@ -65,7 +85,14 @@ if uploaded_file is not None:
 )
 
             if plate_val:
+                plate_val_uniform = re.sub(r'[^A-Za-z0-9]', '', plate_val).upper()
                 st.success(f"License Plate Number: {plate_val}")
+                # Compare with authorized list
+                if plate_val_uniform in authorized_plates:
+                    st.success("✅ AUTHORIZED")
+                else:
+                    st.error("❌ UNAUTHORIZED")
+
             else:
                 st.warning("No license plate detected.")
 
