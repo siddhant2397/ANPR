@@ -21,6 +21,9 @@ if uploaded_file is not None:
         tmp_file.write(uploaded_file.read())
         input_path = tmp_file.name  # Now has correct extension!
 
+    st.info(f"Temp file size: {os.path.getsize(input_path)} bytes")
+
+
     # Initialize Mindee client and parameters
     mindee_client = ClientV2(api_key)
     params = InferenceParameters(
