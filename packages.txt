@@ -7,4 +7,5 @@ libavcodec-dev
 libavutil-dev
 libswscale-dev
 libavresample-dev
+tesseract-ocr
 
