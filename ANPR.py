@@ -9,9 +9,9 @@ import re
 
 # You should NOT hard-code API keys in production. Use Streamlit secrets!
 api_key = st.secrets["MINDEE_API_KEY"]
-model_id = "7889f4de-4ddb-4fd9-9fa4-270f24a670de"  # Replace as needed
+model_id = "863681b0-83bd-4de6-88cb-693906104892"  # Replace as needed
 
-st.title("Automatic Number Plate Recognition")
+st.title("Automatic Number Plate Recognition (Developed by Siddhant Goswami")
 auth_file = st.file_uploader("Upload Excel/CSV of Authorized Plates", type=["xlsx", "xls", "csv"])
 if auth_file is not None:
     # Read authorized plates from file
