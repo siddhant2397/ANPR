@@ -64,14 +64,17 @@ if uploaded_file is not None and authorized_plates:
     with st.spinner("Running inference..."):
         try:
             response = mindee_client.enqueue_and_get_inference(input_source, params)
-            st.success("Inference complete!")
+            st.success("Inference complete!")        
             # Print main result as formatted JSON
             # Temporary debug lines
             # Show entire parsed API result:
             if isinstance(response.raw_http, str):
                 data = json.loads(response.raw_http)
+                st.json(data)
             else:
                 data = response.raw_http
+                st.json(data)
+                
 
 
 
