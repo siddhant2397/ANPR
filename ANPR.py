@@ -83,7 +83,7 @@ if uploaded_file is not None and authorized_plates:
                 data.get("inference", {})
                 .get("result", {})
                 .get("fields", {})
-                .get("license_plate", {})
+                .get("number_plate", {})
                 .get("value", None)
 )
 
