@@ -3,3 +3,6 @@ mindee
 Pillow
 pandas
 openpyxl
+pymongo
+pytz
+
