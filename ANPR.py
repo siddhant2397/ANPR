@@ -11,7 +11,7 @@ import re
 api_key = st.secrets["MINDEE_API_KEY"]
 model_id = "863681b0-83bd-4de6-88cb-693906104892"  # Replace as needed
 
-st.title("Automatic Number Plate Recognition (Developed by Siddhant Goswami")
+st.title("Automatic Number Plate Recognition")
 auth_file = st.file_uploader("Upload Excel/CSV of Authorized Plates", type=["xlsx", "xls", "csv"])
 if auth_file is not None:
     # Read authorized plates from file
