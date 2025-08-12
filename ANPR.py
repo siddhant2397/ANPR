@@ -6,21 +6,34 @@ import os
 import json
 import pandas as pd
 import re
+import pymongo
+from datetime import datetime
+import pytz  # For timezone conversion
 
-# You should NOT hard-code API keys in production. Use Streamlit secrets!
+# ---- API & DB Setup ----
 api_key = st.secrets["MINDEE_API_KEY"]
+mongo_uri = st.secrets["MONGODB_URI"]       # secure in .streamlit/secrets.toml
+client = pymongo.MongoClient(mongo_uri)
+db = client["anpr_database"]
+collection = db["search_logs"]
+
 model_id = "863681b0-83bd-4de6-88cb-693906104892"  # Replace as needed
 
 st.title("Automatic Number Plate Recognition")
+
+# ---- Prompt Location ----
+location = st.text_input("Enter location (site, gate, etc.)")
+if not location:
+    st.warning("Please enter the location before uploading images.")
+
+# ---- Authorized Plates Upload ----
 auth_file = st.file_uploader("Upload Excel/CSV of Authorized Plates", type=["xlsx", "xls", "csv"])
 if auth_file is not None:
-    # Read authorized plates from file
     if auth_file.name.endswith(".csv"):
         df = pd.read_csv(auth_file)
     else:
         df = pd.read_excel(auth_file)
-    plate_col = df.columns[0]  # assumes first column is plate numbers
-    # Uniform: strip, uppercase, remove all non-alphanum
+    plate_col = df.columns[0]
     authorized_plates = set(
         re.sub(r'[^A-Za-z0-9]', '', str(x)).upper()
         for x in df[plate_col].dropna()
@@ -30,17 +43,17 @@ else:
     authorized_plates = set()
     st.info("Please upload your authorized plate Excel/CSV before uploading images.")
 
-
+# ---- Image/PDF Upload & Inference ----
 uploaded_file = st.file_uploader(
     "Upload an image or PDF for inference",
     type=["jpg", "jpeg", "png", "pdf"]
 )
 
-if uploaded_file is not None and authorized_plates:
-    file_ext = os.path.splitext(uploaded_file.name)[1]  # Get user's original extension, e.g., ".jpg"
+if uploaded_file is not None and authorized_plates and location:
+    file_ext = os.path.splitext(uploaded_file.name)[1]
     with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp_file:
         tmp_file.write(uploaded_file.read())
-        input_path = tmp_file.name  # Now has correct extension!
+        input_path = tmp_file.name
 
     st.info(f"Temp file size: {os.path.getsize(input_path)} bytes")
     if file_ext.lower() in [".jpg", ".jpeg", ".png"]:
@@ -52,56 +65,58 @@ if uploaded_file is not None and authorized_plates:
     elif file_ext.lower() == ".pdf":
         st.info("PDF uploaded. Image preview not available, but inference will run.")
 
-
-    # Initialize Mindee client and parameters
+    # Mindee setup
     mindee_client = ClientV2(api_key)
-    params = InferenceParameters(
-        model_id=model_id,
-        rag=False,
-    )
+    params = InferenceParameters(model_id=model_id, rag=False)
     input_source = mindee_client.source_from_path(input_path)
     
     with st.spinner("Running inference..."):
         try:
             response = mindee_client.enqueue_and_get_inference(input_source, params)
             st.success("Inference complete!")        
-            # Print main result as formatted JSON
-            # Temporary debug lines
-            # Show entire parsed API result:
             if isinstance(response.raw_http, str):
                 data = json.loads(response.raw_http)
                 st.json(data)
             else:
                 data = response.raw_http
                 st.json(data)
-                
 
-
-
-# Show just the plate number (robustly):
+            # Plate detection
             plate_val = (
                 data.get("inference", {})
                 .get("result", {})
                 .get("fields", {})
                 .get("number_plate", {})
                 .get("value", None)
-)
+            )
 
             if plate_val:
                 plate_val_uniform = re.sub(r'[^A-Za-z0-9]', '', plate_val).upper()
                 st.success(f"License Plate Number: {plate_val}")
-                # Compare with authorized list
-                if plate_val_uniform in authorized_plates:
+                is_authorized = plate_val_uniform in authorized_plates
+                if is_authorized:
                     st.success("✅ AUTHORIZED")
                 else:
                     st.error("❌ UNAUTHORIZED")
 
+                # --- Get IST timestamp ---
+                ist = pytz.timezone('Asia/Kolkata')
+                timestamp_ist = datetime.now(ist).isoformat()
+
+                # --- Logging to MongoDB ---
+                entry = {
+                    "timestamp": timestamp_ist,
+                    "location": location,
+                    "plate_number": plate_val,
+                    "authorized": is_authorized,
+                }
+                collection.insert_one(entry)
+                st.info(f"Search logged at {timestamp_ist} IST.")
+
             else:
                 st.warning("No license plate detected.")
 
-            
         except Exception as e:
             st.error(f"Inference failed: {e}")
 
-    # Delete the temp file
     os.remove(input_path)
