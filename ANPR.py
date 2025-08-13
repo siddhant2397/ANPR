@@ -8,25 +8,25 @@ import pandas as pd
 import re
 import pymongo
 from datetime import datetime
-import pytz  # For timezone conversion
+import pytz  
 
-# ---- API & DB Setup ----
+
 api_key = st.secrets["MINDEE_API_KEY"]
-mongo_uri = st.secrets["MONGODB_URI"]       # secure in .streamlit/secrets.toml
+mongo_uri = st.secrets["MONGODB_URI"]       
 client = pymongo.MongoClient(mongo_uri)
 db = client["anpr_database"]
 collection = db["search_logs"]
 
-model_id = "863681b0-83bd-4de6-88cb-693906104892"  # Replace as needed
+model_id = "863681b0-83bd-4de6-88cb-693906104892"  
 
 st.title("Automatic Number Plate Recognition")
 
-# ---- Prompt Location ----
+
 location = st.text_input("Enter location (site, gate, etc.)")
 if not location:
     st.warning("Please enter the location before uploading images.")
 
-# ---- Authorized Plates Upload ----
+
 auth_file = st.file_uploader("Upload Excel/CSV of Authorized Plates", type=["xlsx", "xls", "csv"])
 if auth_file is not None:
     if auth_file.name.endswith(".csv"):
@@ -43,7 +43,7 @@ else:
     authorized_plates = set()
     st.info("Please upload your authorized plate Excel/CSV before uploading images.")
 
-# ---- Image/PDF Upload & Inference ----
+
 uploaded_file = st.file_uploader(
     "Upload an image or PDF for inference",
     type=["jpg", "jpeg", "png", "pdf"]
@@ -65,7 +65,7 @@ if uploaded_file is not None and authorized_plates and location:
     elif file_ext.lower() == ".pdf":
         st.info("PDF uploaded. Image preview not available, but inference will run.")
 
-    # Mindee setup
+    
     mindee_client = ClientV2(api_key)
     params = InferenceParameters(model_id=model_id, rag=False)
     input_source = mindee_client.source_from_path(input_path)
@@ -81,7 +81,7 @@ if uploaded_file is not None and authorized_plates and location:
                 data = response.raw_http
                 st.json(data)
 
-            # Plate detection
+            
             plate_val = (
                 data.get("inference", {})
                 .get("result", {})
@@ -99,11 +99,11 @@ if uploaded_file is not None and authorized_plates and location:
                 else:
                     st.error("❌ UNAUTHORIZED")
 
-                # --- Get IST timestamp ---
+                
                 ist = pytz.timezone('Asia/Kolkata')
                 timestamp_ist = datetime.now(ist).isoformat()
 
-                # --- Logging to MongoDB ---
+                
                 entry = {
                     "timestamp": timestamp_ist,
                     "location": location,
