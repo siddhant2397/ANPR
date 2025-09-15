@@ -17,7 +17,7 @@ client = pymongo.MongoClient(mongo_uri)
 db = client["anpr_database"]
 collection = db["search_logs"]
 
-model_id = "863681b0-83bd-4de6-88cb-693906104892"  
+model_id = "034cfb85-6063-4f29-b6a9-97b00d528337"  
 
 st.title("Automatic Number Plate Recognition")
 
@@ -84,7 +84,7 @@ if uploaded_file is not None and authorized_plates and location:
                 data.get("inference", {})
                 .get("result", {})
                 .get("fields", {})
-                .get("number_plate", {})
+                .get("Number Plate Text", {})
                 .get("value", None)
             )
 
